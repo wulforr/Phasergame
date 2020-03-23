@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>first game</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 200 }
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update:update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+    var score =0;
+    var scoretext;
+    var bombs;
+    var gameOver;
+    var upwardjumpvelocity = -330;
+    var leftvelocity = -160;
+    var rightvelocity = 160;
+    var finalscoretext;
+
+    function preload ()
+    {
+        this.load.image('sky', 'assets/sky.png');
+        this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+        this.load.image('bomb', 'assets/bomb.png');
+        this.load.image('platform', 'assets/platform.png')
+        this.load.image('cherry', 'Cherry.png')
+        this.load.image('banana', 'banana.png')
+        this.load.image('orange', 'orange.png')
+    }
+
+    function create ()
+    {
+        this.add.image(400, 300, 'sky');
+               
+        platforms = this.physics.add.staticGroup();
+
+        platforms.create(400, 568, 'platform').setScale(2).refreshBody();
+        platforms.create(600, 400, 'platform');
+        platforms.create(50, 250, 'platform');
+        platforms.create(750, 220, 'platform');
+
+        player = this.physics.add.sprite(100, 450, 'dude');
+        player.setBounce(0.2)
+
+player.setBounce(0.2);
+player.setCollideWorldBounds(true);
+
+this.anims.create({
+    key: 'left',
+    frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+    frameRate: 10,
+    repeat: -1
+});
+
+this.anims.create({
+    key: 'turn',
+    frames: [ { key: 'dude', frame: 4 } ],
+    frameRate: 20
+});
+
+this.anims.create({
+    key: 'right',
+    frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+    frameRate: 10,
+    repeat: -1
+});
+        
+
+this.physics.add.collider(player, platforms);
+cursors = this.input.keyboard.createCursorKeys();
+
+
+cherriess = this.physics.add.group({
+    key: 'cherry',
+    repeat: 2,
+    setXY: { x: 90, y: 0, stepX: 250 }
+});
+
+oranges = this.physics.add.group({
+    key: 'orange',
+    repeat: 2,
+    setXY: { x: 180, y: 0, stepX: 250 }
+});
+
+bananas = this.physics.add.group({
+    key: 'banana',
+    repeat: 2,
+    setXY: { x: 250, y: 0, stepX: 250 }
+});
+// console.log(cherriess);
+
+cherriess.children.iterate(function (child) {
+    child.setScale(0.06,0.06);
+    // console.log(child)
+});
+
+oranges.children.iterate(function (child) {
+    child.setScale(0.015,0.015);
+});
+
+bananas.children.iterate(function (child) {
+    child.setScale(0.05,0.05);
+});
+
+this.physics.add.collider(cherriess,platforms);
+this.physics.add.collider(oranges,platforms);
+this.physics.add.collider(bananas,platforms);
+
+this.physics.add.overlap(cherriess,player,collectcherry,null,this);
+this.physics.add.overlap(oranges,player,collectorange,null,this);
+this.physics.add.overlap(bananas,player,collectbanana,null,this);
+
+scoretext = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+
+finalscoretext = this.add.text(270, 250, '', { fontSize: '64px', fill: '#000' });
+// console.log(finalscoretext)
+// finalscoretext.disableBody(true, true)
+
+bombs = this.physics.add.group();
+
+this.physics.add.collider(bombs,platforms);
+
+this.physics.add.collider(player, bombs,hitbomb,null,this)
+
+
+    }
+function update ()
+{
+    if (gameOver)
+    {
+        return;
+    }
+
+    if (cursors.left.isDown)
+    {
+        player.setVelocityX(leftvelocity);
+
+        player.anims.play('left', true);
+    }
+    else if (cursors.right.isDown)
+    {
+        player.setVelocityX(rightvelocity);
+
+        player.anims.play('right', true);
+    }
+    else
+    {
+        player.setVelocityX(0);
+
+        player.anims.play('turn');
+    }
+
+    if (cursors.up.isDown && player.body.touching.down)
+    {
+        player.setVelocityY(upwardjumpvelocity);
+    }
+}
+
+
+function collectcherry(player, cherry){
+    cherry.disableBody(true, true);
+    score += 10;
+    scoretext.setText('Score:' + score);
+    if (cherriess.countActive(true) === 0)
+    {
+        cherriess.children.iterate(function (child) {
+
+            child.enableBody(true, child.x, 0, true, true);
+
+        });
+        var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+
+        var bomb = bombs.create(x, 16, 'bomb');
+        bomb.setBounce(1);
+        bomb.setCollideWorldBounds(true);
+        bomb.setVelocity(Phaser.Math.Between(-200, 200), 10);
+        upwardjumpvelocity +=2;
+        leftvelocity +=2;
+        rightvelocity -=2;
+    }
+
+}
+function collectorange(player, orange){
+    orange.disableBody(true, true);
+    score += 20;
+    scoretext.setText('Score:' + score);
+    if (oranges.countActive(true) === 0)
+    {
+        oranges.children.iterate(function (child) {
+
+            child.enableBody(true, child.x, 0, true, true);
+
+        });
+        var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+
+        var bomb = bombs.create(x, 16, 'bomb');
+        bomb.setBounce(1);
+        bomb.setCollideWorldBounds(true);
+        bomb.setVelocity(Phaser.Math.Between(-220, 220), 20);
+        upwardjumpvelocity +=4;
+        leftvelocity +=4;
+        rightvelocity -=4;
+
+    }
+}
+function collectbanana(player, banana){
+    banana.disableBody(true, true);
+    score += 25;
+    scoretext.setText('Score:' + score);
+    if (bananas.countActive(true) === 0)
+    {
+        bananas.children.iterate(function (child) {
+
+            child.enableBody(true, child.x, 0, true, true);
+
+        });
+        var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+
+        var bomb = bombs.create(x, 16, 'bomb');
+        bomb.setBounce(1);
+        bomb.setCollideWorldBounds(true);
+        bomb.setVelocity(Phaser.Math.Between(-250, 250), 30);
+        upwardjumpvelocity +=6;
+        leftvelocity +=6;
+        rightvelocity -=6;
+
+    }
+}
+
+function hitbomb(player, bomb){
+    this.physics.pause();
+
+    player.setTint(0xff0000);
+
+    player.anims.play('turn');
+
+    finalscoretext.setText('Score:' +score)
+
+    gameOver = true;
+}
+        
+    
+    </script>
+
+</body>
+</html>
