@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <title>first game</title>
-    <!-- <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script> -->
     <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
     <style type="text/css">
       body {
@@ -17,6 +16,7 @@
   </head>
   <body>
     <script>
+
       var config = {
         type: Phaser.AUTO,
         width: 800,
@@ -61,10 +61,13 @@
       }
 
       function create() {
+          // set background
         this.add.image(400, 300, "sky");
 
+        // add platforms
         platforms = this.physics.add.staticGroup();
 
+        //add base ground and all other platforms
         platforms
           .create(400, 568, "platform")
           .setScale(2)
@@ -73,12 +76,14 @@
         platforms.create(50, 250, "platform");
         platforms.create(750, 220, "platform");
 
+        // add player
         player = this.physics.add.sprite(100, 450, "dude");
+        // add bounce to player when it hits ground
         player.setBounce(0.2);
-
-        player.setBounce(0.2);
+        // player collides with world boundaries
         player.setCollideWorldBounds(true);
 
+        //create animation for movements of player
         this.anims.create({
           key: "left",
           frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
@@ -99,31 +104,32 @@
           repeat: -1
         });
 
+        // player should collide with platforms
         this.physics.add.collider(player, platforms);
         cursors = this.input.keyboard.createCursorKeys();
 
+        // add fruits on the scene
         cherriess = this.physics.add.group({
           key: "cherry",
           repeat: 2,
-          setXY: { x: 90, y: 0, stepX: 250 }
+          setXY: { x: Phaser.Math.Between(80,100), y: 0, stepX: 250 }
         });
 
         oranges = this.physics.add.group({
           key: "orange",
           repeat: 2,
-          setXY: { x: 180, y: 0, stepX: 250 }
+          setXY: { x: Phaser.Math.Between(170,190), y: 0, stepX: 250 }
         });
 
         bananas = this.physics.add.group({
           key: "banana",
           repeat: 2,
-          setXY: { x: 250, y: 0, stepX: 250 }
+          setXY: { x: Phaser.Math.Between(240,260), y: 0, stepX: 250 }
         });
-        // console.log(cherriess);
 
+        // scale down each fruit 
         cherriess.children.iterate(function(child) {
           child.setScale(0.06, 0.06);
-          // console.log(child)
         });
 
         oranges.children.iterate(function(child) {
@@ -134,34 +140,30 @@
           child.setScale(0.05, 0.05);
         });
 
+        // set collider between fruits and platforms
         this.physics.add.collider(cherriess, platforms);
         this.physics.add.collider(oranges, platforms);
         this.physics.add.collider(bananas, platforms);
 
+        // add an event listener for overlapping player and  fruits
         this.physics.add.overlap(cherriess, player, collectcherry, null, this);
         this.physics.add.overlap(oranges, player, collectorange, null, this);
         this.physics.add.overlap(bananas, player, collectbanana, null, this);
 
+        // set scoretext
         scoretext = this.add.text(16, 16, "score: 0", {
           fontSize: "32px",
           fill: "#000"
         });
 
+        // set final score text which displays on game over until then it is null
         finalscoretext = this.add.text(270, 250, "", {
           fontSize: "64px",
           fill: "#000"
         });
-        // restart = this.add.text(300,300,'',{fontSize:'32px',fill:'#000'}).setInteractive();
 
-        //         restart.on('pointerover', function(){this.button.setTint(0xf0ff00);}, this)
-        //         restart.on('pointerout', function(){this.button.setTint(0xffffff);}, this)
-        //         restart.on('pointerdown', function(){
-        //                   //do things on click
-        //         });
 
-        // console.log(finalscoretext)
-        // finalscoretext.disableBody(true, true)
-
+        // add bombs
         bombs = this.physics.add.group();
 
         this.physics.add.collider(bombs, platforms);
@@ -270,7 +272,7 @@
 
         finalscoretext.setText("Score:" + score);
 
-        this.button = this.add.image(350, 350, "restart").setInteractive();
+        this.button = this.add.image(400, 350, "restart").setInteractive();
         this.button.on(
           "pointerover",
           function() {
@@ -287,13 +289,8 @@
         );
         this.button.on("pointerdown", function() {
           console.log(this);
-        //   create();
-        //   this.registry.destroy();
-        //   this.events,off();
-        //   this.scene.restart();
             gameOver = false;
-            // scene.registry.destroy();
-            // scene.events.off();
+            score =0;
             scene.restart();
                     });
 
